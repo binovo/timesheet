@@ -11,7 +11,7 @@ from datetime import datetime, time
 from dateutil.relativedelta import relativedelta, SU
 from dateutil.rrule import MONTHLY, WEEKLY
 
-from odoo import api, fields, models, SUPERUSER_ID, _
+from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
@@ -344,7 +344,7 @@ class Sheet(models.Model):
     @api.multi
     def _get_possible_reviewers(self):
         self.ensure_one()
-        res = self.env['res.users'].browse(SUPERUSER_ID)
+        res = self.env['res.users']
         if self.review_policy == 'hr':
             res |= self.env.ref('hr.group_hr_user').users
         elif self.review_policy == 'hr_manager':
