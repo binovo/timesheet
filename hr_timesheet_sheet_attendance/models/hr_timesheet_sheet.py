@@ -90,7 +90,9 @@ class HrTimesheetSheet(models.Model):
     @api.model
     def create(self, vals):
         res = super(HrTimesheetSheet, self).create(vals)
-        attendances = self.env["hr.attendance"].search(
+        # Necesitamos permiso sudo porque algunos usuarios no tienen permiso para asignar
+        # una hoja de servicio a sus asistencias.
+        attendances = self.env["hr.attendance"].sudo().search(
             [
                 ("employee_id", "=", res.employee_id.id),
                 ("sheet_id", "=", False),
