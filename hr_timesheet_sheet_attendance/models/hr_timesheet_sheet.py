@@ -87,23 +87,23 @@ class HrTimesheetSheet(models.Model):
                 )
             )
 
-    @api.model
-    def create(self, vals):
-        res = super(HrTimesheetSheet, self).create(vals)
-        # Necesitamos permiso sudo porque algunos usuarios no tienen permiso para asignar
-        # una hoja de servicio a sus asistencias.
-        attendances = self.env["hr.attendance"].sudo().search(
-            [
-                ("employee_id", "=", res.employee_id.id),
-                ("sheet_id", "=", False),
-                ("check_in", ">=", res.date_start),
-                ("check_in", "<=", res.date_end),
-                "|",
-                ("check_out", "=", False),
-                "&",
-                ("check_out", ">=", res.date_start),
-                ("check_out", "<=", res.date_end),
-            ]
-        )
-        attendances._compute_sheet_id()
-        return res
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        attendances = self.env["hr.attendance"]
+        for res in records:
+            attendances |= self.env["hr.attendance"].search(
+                [
+                    ("employee_id", "=", res.employee_id.id),
+                    ("sheet_id", "=", False),
+                    ("check_in", ">=", res.date_start),
+                    ("check_in", "<=", res.date_end),
+                    "|",
+                    ("check_out", "=", False),
+                    "&",
+                    ("check_out", ">=", res.date_start),
+                    ("check_out", "<=", res.date_end),
+                ]
+            )
+        attendances.sudo()._compute_sheet_id()
+        return records
